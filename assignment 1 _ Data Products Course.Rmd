@@ -1,0 +1,61 @@
+---
+title: "Assignment 1 - Data Products Course"
+author: "jbassard"
+date: "August 12 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Synopsis
+This is the first project assignment for the Developping Data Products course in Coursera's Data Science specialization track. **The purpose of this project is to create an interactive map with leaflet R package.** I will create an interactive map with the location of the public transport stations in Paris. Data is downloaded from RATP's open data website.
+
+
+### Checking for required packages and install them if necessary, then load them
+```{r}
+if (!require("leaflet")) {
+	 install.packages("leaflet")}
+library(leaflet)
+```
+
+## Loading data
+### Downloading data in DataProduct folder
+```{r}
+if(!file.exists("./DataProduct")) {
+	dir.create("./DataProduct")}
+if(!file.exists("./DataProduct/positions-geographiques-des-stations-du-reseau-ratp.csv")) {
+	fileUrl1 <- "https://dataratp2.opendatasoft.com/explore/dataset/positions-geographiques-des-stations-du-reseau-ratp/download/?format=csv&timezone=Europe/Berlin&use_labels_for_header=true"
+	download.file(fileUrl1, destfile="./DataProduct/positions-geographiques-des-stations-du-reseau-ratp.csv")}
+```
+
+### Loading the data
+```{r}
+RATP <- read.csv("./DataProduct/positions-geographiques-des-stations-du-reseau-ratp.csv", header=TRUE, sep=";")
+```
+
+## Quick Exploration of the dataset
+```{r}
+dim(RATP)
+head(RATP)
+str(RATP)
+```
+
+## Preparing the interactive map
+```{r}
+Icon <- makeIcon(
+  iconUrl = "http://www.pngfactory.net/png/18585/Ratp/download-png",
+  iconWidth = 35*215/230, iconHeight = 35,
+  iconAnchorX = 35*215/230/2, iconAnchorY = 35) # retrieve RATP logo to add on the map at each station location 
+MetroCoords <- data.frame(
+  lat = RATP$stop_lat,
+  lng = RATP$stop_lon)  # prepare a dataframe with GPS coordinates
+StationName <- paste("<a href='", "'>", RATP$stop_name,"</a>" ,sep = "")
+```
+
+## Interactive map of public transport stations in Paris
+```{r}
+InteractiveMap <- MetroCoords %>% leaflet() %>% addTiles() %>% addMarkers(clusterOptions = markerClusterOptions, icon=Icon, popup = StationName)
+InteractiveMap
+```
